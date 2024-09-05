@@ -304,11 +304,11 @@ if uploaded_file is not None:
     #goals = conn.query('SELECT * from milestones;',index_col='metric')
     #goals.drop('index',axis=1,inplace=True)
 
-    master_data = pd.read_excel(uploaded_file, sheet='master_data', index_col='date')
-    rolling_data = pd.read_excel(uploaded_file, sheet='rolling_data', index_col='date')
-    sub_counts = pd.read_excel(uploaded_file, sheet='sub_counts', index_col='status')
-    influencers = pd.read_excel(uploaded_file, sheet='influencers')
-    goals = pd.read_excel(uploaded_file, sheet='milestones', index_col='metric')
+    master_data = pd.read_excel(uploaded_file, sheet_name='master_data', index_col='date')
+    rolling_data = pd.read_excel(uploaded_file, sheet_name='rolling_data', index_col='date')
+    sub_counts = pd.read_excel(uploaded_file, sheet_name='sub_counts', index_col='status')
+    influencers = pd.read_excel(uploaded_file, sheet_name='influencers')
+    goals = pd.read_excel(uploaded_file, sheet_name='milestones', index_col='metric')
 
     master_data.index = pd.to_datetime(master_data.index)
     rolling_data.index = pd.to_datetime(rolling_data.index)
