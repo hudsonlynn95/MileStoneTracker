@@ -7,3 +7,4 @@ openpyxl
 mysql-connector-python
 SQLAlchemy
 mysqlclient
+st-gsheets-connection
