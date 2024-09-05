@@ -2,6 +2,7 @@
 /.vscode
 /test
 /.streamlit/secrets.toml
+/Data
 database.xlsx
 data_import.py
 /TEST_pages

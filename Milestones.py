@@ -6,6 +6,7 @@ import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from streamlit_gsheets import GSheetsConnection
 #import sqlalchemy
 #import mysql
 
@@ -303,7 +304,9 @@ if uploaded_file is not None:
     #influencers = conn.query('SELECT * from influencers;')
     #goals = conn.query('SELECT * from milestones;',index_col='metric')
     #goals.drop('index',axis=1,inplace=True)
-
+    conn = st.connection('gsheets', type=GSheetsConnection)
+    df = conn.read()
+    st.write(df)
     master_data = pd.read_excel(uploaded_file, sheet_name='master_data', index_col='date')
     rolling_data = pd.read_excel(uploaded_file, sheet_name='rolling_data', index_col='date')
     sub_counts = pd.read_excel(uploaded_file, sheet_name='sub_counts', index_col='status')
