@@ -292,8 +292,8 @@ def create_follower_chart(data, metrics, colors):
     st.plotly_chart(fig)
     return
 
-uploaded_file = st.sidebar.file_uploader("Choose a file")
-
+#uploaded_file = st.sidebar.file_uploader("Choose a file")
+uploaded_file = 0
 
 if uploaded_file is not None:
 
@@ -305,13 +305,17 @@ if uploaded_file is not None:
     #goals = conn.query('SELECT * from milestones;',index_col='metric')
     #goals.drop('index',axis=1,inplace=True)
     conn = st.connection('gsheets', type=GSheetsConnection)
-    df = conn.read()
-    st.write(df)
-    master_data = pd.read_excel(uploaded_file, sheet_name='master_data', index_col='date')
-    rolling_data = pd.read_excel(uploaded_file, sheet_name='rolling_data', index_col='date')
-    sub_counts = pd.read_excel(uploaded_file, sheet_name='sub_counts', index_col='status')
-    influencers = pd.read_excel(uploaded_file, sheet_name='influencers')
-    goals = pd.read_excel(uploaded_file, sheet_name='milestones', index_col='metric')
+    master_data = conn.read(worksheet='master_data',index_col='date')
+    
+    rolling_data = conn.read(worksheet='rolling_data',index_col='date')
+    sub_counts = conn.read(worksheet='sub_counts',index_col='status')
+    influencers = conn.read(worksheet='influencers')
+    goals = conn.read(worksheet='milestones',index_col='metric')
+    #master_data = pd.read_excel(uploaded_file, sheet_name='master_data', index_col='date')
+    #rolling_data = pd.read_excel(uploaded_file, sheet_name='rolling_data', index_col='date')
+    #sub_counts = pd.read_excel(uploaded_file, sheet_name='sub_counts', index_col='status')
+    #influencers = pd.read_excel(uploaded_file, sheet_name='influencers')
+    #goals = pd.read_excel(uploaded_file, sheet_name='milestones', index_col='metric')
 
     master_data.index = pd.to_datetime(master_data.index)
     rolling_data.index = pd.to_datetime(rolling_data.index)
