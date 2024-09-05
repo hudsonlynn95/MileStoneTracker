@@ -1,0 +1,14 @@
+/.venv
+/.vscode
+/test
+/.streamlit/secrets.toml
+database.xlsx
+data_import.py
+/TEST_pages
+gs_test.py
+test.html
+testing.py
+to_do.md
+text.txt
+MySQL*
+*.csv

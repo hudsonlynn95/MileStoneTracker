@@ -1,0 +1,22 @@
+html, body {
+    background-color: lightgoldenrodyellow;
+    font-family: 'Avenir Black', 'Arial Black';
+  }
+  
+  div[data-testid="stHorizontalBlock"] > div{
+    background-color: #333366;
+  }
+  [data-testid="column"]{
+    border: 2px solid #333366;
+    border-radius: 5px;
+    }
+  div[data-testid="column"]
+  {
+      /*border:1px solid blue;*/
+      text-align: left;
+  } 
+[data-testid="stMetricValue"] {
+    font-size: 20px;
+}
+  
+  
