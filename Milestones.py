@@ -291,150 +291,154 @@ def create_follower_chart(data, metrics, colors):
     st.plotly_chart(fig)
     return
 
-
-#master_data = pd.read_csv('master_data.csv',index_col='date')
-#uploaded_file = st.sidebar.file_uploader("Choose a file")
+uploaded_file = st.sidebar.file_uploader("Choose a file")
 
 
-#if uploaded_file is not None:
-conn = st.connection('mysql', type='sql')
-master_data = conn.query('SELECT * from master_data;',index_col='date')
-rolling_data = conn.query('SELECT * from rolling_data;',index_col='date')
-sub_counts = conn.query('SELECT * from sub_counts;',index_col='status')
-sub_counts.drop('index',axis=1,inplace=True)
-influencers = conn.query('SELECT * from influencers;')
-goals = conn.query('SELECT * from milestones;',index_col='metric')
-goals.drop('index',axis=1,inplace=True)
+if uploaded_file is not None:
 
-master_data.index = pd.to_datetime(master_data.index)
-rolling_data.index = pd.to_datetime(rolling_data.index)
-influencers['deliveryDate'] = pd.to_datetime(influencers['deliveryDate'],format='%m/%d/%Y')
+    #master_data = conn.query('SELECT * from master_data;',index_col='date')
+    #rolling_data = conn.query('SELECT * from rolling_data;',index_col='date')
+    #sub_counts = conn.query('SELECT * from sub_counts;',index_col='status')
+    #sub_counts.drop('index',axis=1,inplace=True)
+    #influencers = conn.query('SELECT * from influencers;')
+    #goals = conn.query('SELECT * from milestones;',index_col='metric')
+    #goals.drop('index',axis=1,inplace=True)
 
-cols = st.columns([.35, .3, .35])
-colors = ['#6666FF', '#FF6699', '#669966', '#FFCC00']
+    master_data = pd.read_excel(uploaded_file, sheet='master_data', index_col='date')
+    rolling_data = pd.read_excel(uploaded_file, sheet='rolling_data', index_col='date')
+    sub_counts = pd.read_excel(uploaded_file, sheet='sub_counts', index_col='status')
+    influencers = pd.read_excel(uploaded_file, sheet='influencers')
+    goals = pd.read_excel(uploaded_file, sheet='milestones', index_col='metric')
 
-#region Sales Column
-with cols[0]:
-    st.markdown('## **Sales**')
-    sales_metrics = {
-        'revenue': {'label': 'Revenue', 'help': 'Average Daily Revenue (Last 30 Days)','fmt': '${:,.2f}'},
-        'sessions': {'label': 'Web Sessions', 'help': 'Average Daily Web Sessions (Last 30 Days)', 'fmt': '{:,.0f}'},
-        'conversionRate': {'label': 'Conversion Rate', 'help': 'Percent of Web Sessions Converting to final sale (Last 30 Days)','fmt': '{:.1%}'},
-        'averageOrderValue': {'label': 'Average Order Value', 'help': 'Average Order Value (Last 30 Days)','fmt': '${:,.2f}'}
-    }
-    #sales_metrics = ['revenue', 'sessions', 'conversionRate','averageOrderValue']
-    #fmts = ['${:,.2f}','{:,.0f}','{:.1%}','${:,.2f}']
-    inner_cols = st.columns(len(sales_metrics))
+    master_data.index = pd.to_datetime(master_data.index)
+    rolling_data.index = pd.to_datetime(rolling_data.index)
+    influencers['deliveryDate'] = pd.to_datetime(influencers['deliveryDate'],format='%m/%d/%Y')
 
-    c=0
-    for metric in sales_metrics:
-        v = rolling_data[metric].iloc[-1]
-        d = rolling_data[metric].iloc[-30]
+    cols = st.columns([.35, .3, .35])
+    colors = ['#6666FF', '#FF6699', '#669966', '#FFCC00']
 
-        with inner_cols[c]:
-            create_30day_metric(rolling_data, metric = metric, fmt=sales_metrics[metric]['fmt'], label=sales_metrics[metric]['label'], help = sales_metrics[metric]['help'])
-        c+=1
-    create_sales_chart(rolling_data, ['revenue','sessions'],colors=colors)
+    #region Sales Column
+    with cols[0]:
+        st.markdown('## **Sales**')
+        sales_metrics = {
+            'revenue': {'label': 'Revenue', 'help': 'Average Daily Revenue (Last 30 Days)','fmt': '${:,.2f}'},
+            'sessions': {'label': 'Web Sessions', 'help': 'Average Daily Web Sessions (Last 30 Days)', 'fmt': '{:,.0f}'},
+            'conversionRate': {'label': 'Conversion Rate', 'help': 'Percent of Web Sessions Converting to final sale (Last 30 Days)','fmt': '{:.1%}'},
+            'averageOrderValue': {'label': 'Average Order Value', 'help': 'Average Order Value (Last 30 Days)','fmt': '${:,.2f}'}
+        }
+        #sales_metrics = ['revenue', 'sessions', 'conversionRate','averageOrderValue']
+        #fmts = ['${:,.2f}','{:,.0f}','{:.1%}','${:,.2f}']
+        inner_cols = st.columns(len(sales_metrics))
 
-    st.markdown('Daily Average Revenue (% to Goal)',help='Measure of how close we are to reaching $20,000 monthly revenue on the last 30 days.')
-    create_sales_indicator(rolling_data, 'revenue', 655)
+        c=0
+        for metric in sales_metrics:
+            v = rolling_data[metric].iloc[-1]
+            d = rolling_data[metric].iloc[-30]
 
-    inner_cols_2 = st.columns(2)
-    with inner_cols_2[0]:
-        #st.markdown('Active Subscription Count')
-        st.metric(label='Active Subscriptions',value=sub_counts.loc['ACTIVE'],help='Number of currently active subscriptions')
-    with inner_cols_2[1]:
-        #st.markdown('Subscription Retention Rate', help='Percent of all subscriptions ever purchased that are currently active.')
-        value = sub_counts.loc['ACTIVE']/(sub_counts.loc['ACTIVE']+sub_counts.loc['CANCELLED'])
-        value = value.values[0]
-        st.metric(label='Subscription Retention Rate',value='{:.1%}'.format(value),help='Percent of all subscriptions ever purchased that are currently active.')
-    create_sub_gauge(sub_counts.loc['ACTIVE'].values[0], 60)
-#endregion
+            with inner_cols[c]:
+                create_30day_metric(rolling_data, metric = metric, fmt=sales_metrics[metric]['fmt'], label=sales_metrics[metric]['label'], help = sales_metrics[metric]['help'])
+            c+=1
+        create_sales_chart(rolling_data, ['revenue','sessions'],colors=colors)
 
-#region Marketing Column
-with cols[1]:
-    st.markdown('## **Marketing**',help='Marketing spend data is manually updated once per week. Between manual updates, daily ad-spend is estimated based on trailing 2 weeks of actual spend')
-    inner_cols = st.columns(2)
-    with inner_cols[0]:
-        create_30day_metric(rolling_data,'ROAS', '{:.1f}','ROAS',help='Ratio of Revenue to Ad Spend (Last 30 Days). Note that this is not strict ROAS, as it includes all sales not just those generated from ads.')
-    with inner_cols[1]:
-        create_30day_metric(rolling_data, 'costOfAcquisition', '${:,.2f}','Cost Of Acquisition', delta_color='inverse',help='Estimate of customer cost of acquisition, by taking total ad spend in last 30 days divided by total orders in last 30 days.')
-    #create_ad_pie(master_data, ['metaAds', 'googleAds'],colors)
-    create_ad_chart(master_data,colors)
+        st.markdown('Daily Average Revenue (% to Goal)',help='Measure of how close we are to reaching $20,000 monthly revenue on the last 30 days.')
+        create_sales_indicator(rolling_data, 'revenue', 655)
 
-    recent_influencers = influencers.sort_values('deliveryDate',ascending=False)
-    recent_influencers = recent_influencers[['name', 'source', 'deliveryDate', 'status']]
-    recent_influencers['deliveryDate'] = recent_influencers['deliveryDate'].dt.date
-    recent_influencers = recent_influencers.head(20)
+        inner_cols_2 = st.columns(2)
+        with inner_cols_2[0]:
+            #st.markdown('Active Subscription Count')
+            st.metric(label='Active Subscriptions',value=sub_counts.loc['ACTIVE'],help='Number of currently active subscriptions')
+        with inner_cols_2[1]:
+            #st.markdown('Subscription Retention Rate', help='Percent of all subscriptions ever purchased that are currently active.')
+            value = sub_counts.loc['ACTIVE']/(sub_counts.loc['ACTIVE']+sub_counts.loc['CANCELLED'])
+            value = value.values[0]
+            st.metric(label='Subscription Retention Rate',value='{:.1%}'.format(value),help='Percent of all subscriptions ever purchased that are currently active.')
+        create_sub_gauge(sub_counts.loc['ACTIVE'].values[0], 60)
+    #endregion
 
-    def color_validation(val):
-        if val == 'Posted':
-            color = '#66CC33'
-        elif val == 'En Route':
-            color = '#FFCC33'
-        else:
-            color = '#CC3300'
-        return 'background-color: %s' % color
-    
-    recent_influencers = recent_influencers.style.map(color_validation, subset='status')
+    #region Marketing Column
+    with cols[1]:
+        st.markdown('## **Marketing**',help='Marketing spend data is manually updated once per week. Between manual updates, daily ad-spend is estimated based on trailing 2 weeks of actual spend')
+        inner_cols = st.columns(2)
+        with inner_cols[0]:
+            create_30day_metric(rolling_data,'ROAS', '{:.1f}','ROAS',help='Ratio of Revenue to Ad Spend (Last 30 Days). Note that this is not strict ROAS, as it includes all sales not just those generated from ads.')
+        with inner_cols[1]:
+            create_30day_metric(rolling_data, 'costOfAcquisition', '${:,.2f}','Cost Of Acquisition', delta_color='inverse',help='Estimate of customer cost of acquisition, by taking total ad spend in last 30 days divided by total orders in last 30 days.')
+        #create_ad_pie(master_data, ['metaAds', 'googleAds'],colors)
+        create_ad_chart(master_data,colors)
 
-    st.markdown('Recent Influencer Boxes')
-    st.dataframe(
-        recent_influencers,
-        hide_index=True,
-        use_container_width=True,
-        column_config={
-            'name': "Name",
-            'source': "Source", 
-            'deliveryDate': st.column_config.DateColumn(label="Date Delivered"), 
-            'status': "Status"})
-#endregion
+        recent_influencers = influencers.sort_values('deliveryDate',ascending=False)
+        recent_influencers = recent_influencers[['name', 'source', 'deliveryDate', 'status']]
+        recent_influencers['deliveryDate'] = recent_influencers['deliveryDate'].dt.date
+        recent_influencers = recent_influencers.head(20)
 
-#region Social Column
-with cols[2]:
-    st.markdown('## Social',help='Historical follower counts prior to August 20, 2024 are estimated and may not be 100% accurate')
-    follower_metrics = ['IG_followers', 'YT_followers','TT_followers','FB_followers']
-    inner_cols = st.columns(len(follower_metrics))
-    row2 = st.columns([.6,.4])
+        def color_validation(val):
+            if val == 'Posted':
+                color = '#66CC33'
+            elif val == 'En Route':
+                color = '#FFCC33'
+            else:
+                color = '#CC3300'
+            return 'background-color: %s' % color
+        
+        recent_influencers = recent_influencers.style.map(color_validation, subset='status')
 
-    fig = px.line()
-    
+        st.markdown('Recent Influencer Boxes')
+        st.dataframe(
+            recent_influencers,
+            hide_index=True,
+            use_container_width=True,
+            column_config={
+                'name': "Name",
+                'source': "Source", 
+                'deliveryDate': st.column_config.DateColumn(label="Date Delivered"), 
+                'status': "Status"})
+    #endregion
 
-    for c in range(len(follower_metrics)):
-        v = rolling_data[follower_metrics[c]].iloc[-1]
-        d = rolling_data[follower_metrics[c]].iloc[-30]
+    #region Social Column
+    with cols[2]:
+        st.markdown('## Social',help='Historical follower counts prior to August 20, 2024 are estimated and may not be 100% accurate')
+        follower_metrics = ['IG_followers', 'YT_followers','TT_followers','FB_followers']
+        inner_cols = st.columns(len(follower_metrics))
+        row2 = st.columns([.6,.4])
 
-        with inner_cols[c]:
-            create_30day_metric(master_data, follower_metrics[c], '{:,.0f}', follower_metrics[c])
+        fig = px.line()
+        
 
-        with row2[1]:
-            goal = goals.loc[follower_metrics[c]].values[0]
-            create_follower_gauge(rolling_data,follower_metrics[c],goal)
-    
-    with row2[0]:
-        create_follower_chart(master_data,follower_metrics,colors)
-#endregion  
+        for c in range(len(follower_metrics)):
+            v = rolling_data[follower_metrics[c]].iloc[-1]
+            d = rolling_data[follower_metrics[c]].iloc[-30]
+
+            with inner_cols[c]:
+                create_30day_metric(master_data, follower_metrics[c], '{:,.0f}', follower_metrics[c])
+
+            with row2[1]:
+                goal = goals.loc[follower_metrics[c]].values[0]
+                create_follower_gauge(rolling_data,follower_metrics[c],goal)
+        
+        with row2[0]:
+            create_follower_chart(master_data,follower_metrics,colors)
+    #endregion  
 
 
 
 
 
 
-formatted_data = master_data.copy()
-formatted_data['revenue'] = formatted_data['revenue'].map('${:,.2f}'.format)
-formatted_data['averageOrderValue'] = formatted_data['averageOrderValue'].map('${:,.2f}'.format)
-formatted_data['orders'] = formatted_data['orders'].map('{:,.0f}'.format)
-formatted_data['sessions'] = formatted_data['sessions'].map('{:,.0f}'.format)
-formatted_data['IG_followers'] = formatted_data['IG_followers'].map('{:,.0f}'.format)
-formatted_data['YT_followers'] = formatted_data['YT_followers'].map('{:,.0f}'.format)
-formatted_data['TT_followers'] = formatted_data['TT_followers'].map('{:,.0f}'.format)
-formatted_data['FB_followers'] = formatted_data['FB_followers'].map('{:,.0f}'.format)
-formatted_data['conversionRate'] = formatted_data['conversionRate'].map('{:.1%}'.format)
-with st.expander(label='Raw Data'):
-    st.dataframe(formatted_data,use_container_width=True)
+    formatted_data = master_data.copy()
+    formatted_data['revenue'] = formatted_data['revenue'].map('${:,.2f}'.format)
+    formatted_data['averageOrderValue'] = formatted_data['averageOrderValue'].map('${:,.2f}'.format)
+    formatted_data['orders'] = formatted_data['orders'].map('{:,.0f}'.format)
+    formatted_data['sessions'] = formatted_data['sessions'].map('{:,.0f}'.format)
+    formatted_data['IG_followers'] = formatted_data['IG_followers'].map('{:,.0f}'.format)
+    formatted_data['YT_followers'] = formatted_data['YT_followers'].map('{:,.0f}'.format)
+    formatted_data['TT_followers'] = formatted_data['TT_followers'].map('{:,.0f}'.format)
+    formatted_data['FB_followers'] = formatted_data['FB_followers'].map('{:,.0f}'.format)
+    formatted_data['conversionRate'] = formatted_data['conversionRate'].map('{:.1%}'.format)
+    with st.expander(label='Raw Data'):
+        st.dataframe(formatted_data,use_container_width=True)
 
-with st.expander(label='Rolling 30 Day Data'):
-    st.dataframe(rolling_data)
+    with st.expander(label='Rolling 30 Day Data'):
+        st.dataframe(rolling_data)
 
 
 
